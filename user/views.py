@@ -1,10 +1,14 @@
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
-
-from user.models import User
-
+from user.tools import Tools
+from user.dml_user import MysqlDML
+from user.ddl_user import FileDDL
 # Create your views here.
+verification_code = ''
+tools = Tools()
+dml_user = MysqlDML()
+ddl_user = FileDDL()
 
 
 @csrf_exempt
@@ -15,10 +19,11 @@ def login(request):
     elif request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-        info = MysqlDML().queryUser(username, password)
-        if info['result'] == 'up200':
+        info = dml_user.queryUser(username, password)
+        if info['res'] == 'up200':
             request.session['username'] = username
             request.session['is_login'] = True
+
         return JsonResponse(info)
 
     else:
@@ -33,42 +38,50 @@ def register(request):
     elif request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-        info = MysqlDML().addUser(username, password)
-        if info['result'] == 're200':
+        email = request.POST.get('email')
+        input_verification_code = request.POST.get('verification_code')
+        if input_verification_code != verification_code:
+            return JsonResponse({'res': "邮箱验证码出错，请重新验证"})
+
+        info = dml_user.addUser(username, password, email)
+        if info['res'] == 're200':
             request.session['username'] = username
             request.session['is_login'] = True
+            # 建立一个以其名称命名的表
+            ddl_user.createTable(username)
+            return render(request, 'login.html')
+        print(info)
         return JsonResponse(info)
 
     else:
         return render(request, 'register.html')
 
 
+def verifyEmail(request):
+    global verification_code
+    # verification_code = '9527'
+    verification_code = tools.getRandomVerificationCode()
+    email = request.GET.get('email')
+    print(email)
+    tools.sendEmail(verification_code, email)
+    return render(request, 'register.html')
+
+
+@csrf_exempt
 def logout(request):
     request.session.clear()
     return HttpResponse('')
 
 
-class DML:
-    def __init__(self):
-        pass
+# def findPassword(request):
+#     new_password = tools.getRandomPassword()
+#     sendEmail(new_password)
+#     username = request.session['username']
+#     dml_user.updatePassword(username, new_password)
+#     return JsonResponse({'res': '请至邮箱查收新密码'})
 
 
-class MysqlDML(DML):
-    def queryUser(self, username, password):
-        username_db = User.objects.filter(username=username)
-        if not username_db.exists():
-            return {'result': "用户名不存在"}
-        else:
-            password_in_db = User.objects.get(username=username)
-            if password != password_in_db.password:
-                return {'result': "密码不正确"}
-            else:
-                return {'result': "up200"}
+def deleteUser(request):
+    pass
 
-    def addUser(self, username, password):
-        username_db = User.objects.filter(username=username)
-        if username_db.exists():
-            return {'result': "用户名已存在"}
-        else:
-            User.objects.create(username=username, password=password)
-            return {'result': "re200"}
+

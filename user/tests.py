@@ -1,18 +1,12 @@
-from django.test import TestCase
-from user.models import User
-
-
-# Create your tests here.
-def queryUser(self, username, password):
-    user_info = User.objects.all()
-    if username not in user_info:
-        return "用户名不存在"
-    else:
-        password_in_db = User.objects.filter(username=username)
-        if password != password_in_db:
-            return "密码不正确"
-        else:
-            return "登录成功"
-
-if __name__ == '__main__':
-    queryUser('clhiker', '7155293')
+# import random,string
+# src = string.ascii_letters + string.digits
+# list_passwds = []
+# list_passwd_all = random.sample(src, 5) #从字母和数字中随机取5位
+# list_passwd_all.extend(random.sample(string.digits, 1))  #让密码中一定包含数字
+# list_passwd_all.extend(random.sample(string.ascii_lowercase, 1)) #让密码中一定包含小写字母
+# list_passwd_all.extend(random.sample(string.ascii_uppercase, 1)) #让密码中一定包含大写字母
+# random.shuffle(list_passwd_all) #打乱列表顺序
+# str_passwd = ''.join(list_passwd_all) #将列表转化为字符串
+# # if str_passwd not in list_passwds: #判断是否生成重复密码
+# #     list_passwds.append(str_passwd)
+# print(str_passwd)

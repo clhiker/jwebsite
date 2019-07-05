@@ -39,9 +39,13 @@
         // Register
         if (check === true) {
             const username = $('#username-input').val();
+            const email = 'cl1911618290@mail.dlut.edu.cn';
+            const verification_code = '9527';
             var post_data = {
                 "username": username,
-                "password": password
+                "password": password,
+                "email": $('#telephone-input').val(),
+                "verification_code": $('#verify-code-input').val(),
             };
             $.ajax({
                 url: "/user/register.html",
@@ -49,11 +53,11 @@
                 type: 'POST',
                 data: post_data,
                 success: function (data) {
-                    if (data['result'] === 're200'){
+                    if (data['res'] === 're200'){
                         location.href = '/';
                     }
                     else {
-                        alert(data['result']);
+                        alert(data['res']);
                         location.href = "/user/register.html";
                     }
                 },
@@ -108,35 +112,49 @@
 
     /*==================================================================
     [ Get Verify Code ]*/
-//     $('.get-verify-code-btn').click(function () {
-//         var countdown = 0;
+    $('.get-verify-code-btn').click(function () {
+        var countdown = 0;
 
-//         if (countdown === 0) {
-//             $(this).removeAttr("disabled");
-//             $(this).value = "点击获取";
-//             countdown = 60;
-//             var telephone = $('#telephone-input').val();
-//             $.post("/register/", {
-//                 phone: telephone
-//             }, function (data) {
-//                 /** @namespace data.messages */
-//                 if (data.messages !== null && data.messages[0].code === '1000') {
-//                     window.location.href = "home";
-//                 } else {
-//                     alert(data.messages[0].message);
-//                 }
-//             });
-//         } else {
-//             $(this).setAttribute("disabled", true);
-//             $(this).value = "重新发送(" + countdown + ")";
-//             $(this).border = "1px solid black";
-//             countdown--;
-//             if (countdown > 1) {
-//                 setTimeout(function () {
-//                     setTime(button)
-//                 }, 1000);
-//             }
-//         }
-//     })
+        if (countdown === 0) {
+            $(this).removeAttr("disabled");
+            $(this).value = "点击获取";
+            countdown = 60;
+            var telephone = $('#telephone-input').val();
+            alert('已将验证码发送至邮箱，请查收');
+            var post_data = {'email': telephone};
+            $.ajax({
+                url: "/user/verify_email",
+                dataType: 'json',
+                type: 'GET',
+                data: post_data,
+                success: function (data) {
+                    console.log(data)
+                },
+                fail: function (data) {
+                    console.log(data);
+                }
+            });
+            // $.get("/user/register.html", {
+            //     phone: telephone
+            // }, function (data) {
+            //     /** @namespace data.messages */
+            //     if (data.messages !== null && data.messages[0].code === '1000') {
+            //         window.location.href = "storage";
+            //     } else {
+            //         alert(data.messages[0].message);
+            //     }
+            // });
+        } else {
+            $(this).setAttribute("disabled", true);
+            $(this).value = "重新发送(" + countdown + ")";
+            $(this).border = "1px solid black";
+            countdown--;
+            if (countdown > 1) {
+                setTimeout(function () {
+                    setTime(button)
+                }, 1000);
+            }
+        }
+    })
 
 })(jQuery);

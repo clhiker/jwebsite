@@ -202,7 +202,7 @@ header .social-icon li a
 }
 /* end navigation */
 
-/* start home */
+/* start storage */
 #home
 	{
 		background: url('../image/home-bg.jpg') no-repeat;
@@ -245,7 +245,7 @@ header .social-icon li a
 	height: 60px;
 	font-size: 16px;
 }
-/* end home */
+/* end storage */
 
 /* start about */
 #about .media-heading-wrapper

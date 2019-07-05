@@ -47,11 +47,11 @@
                 type: 'POST',
                 data: post_data,
                 success: function (data) {
-                    if (data['result'] === 'up200'){
+                    if (data['res'] === 'up200'){
                         location.href = '/';
                     }
                     else {
-                        alert(data['result']);
+                        alert(data['res']);
                         location.href = "/user/login.html";
                     }
                 },

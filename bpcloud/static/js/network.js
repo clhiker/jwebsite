@@ -1,118 +1,119 @@
-function POST(url, data, success, error) {
-    if (url === null){
-        alert("url 不能为空");
-        return;
-    }
-    if(data === null){
-        data = {};
-    }
-    $.ajax({
-        type: 'post',
-        url: url,
-        contentType: 'application/json',
-        dataType: 'json',
-        data: JSON.stringify(data),
 
-        success: function(data) {
-            if (data.messages !== null && data.messages[0].code === '1000' ){
-                if (data.data){
-                    success(data.data.rows);
-                } else {
-                    success(null);
+function xhrUploadFile(file_object, hash_code, filename) {
+    let fileUploadTime = new Date();   // 上传时间 当前操作时间
+
+    let xhr = new XMLHttpRequest();
+    let form = new FormData();
+    form.append('upload-file',file_object);
+    alert(filename);
+    form.append('fileName', filename);
+    form.append('fileSize', file_object.size);
+    form.append('fileType', file_object.type);
+    form.append('fileHash', hash_code);
+    form.append('fileUploadTime', fileUploadTime.toISOString());
+
+
+    // 这里绑定了进度条，前端也可以动态创建进度页面
+    xhr.upload.addEventListener('progress',onProgress,false);
+
+    xhr.open('POST','/bpcloud/upload_file/',true);
+    xhr.setRequestHeader('X-CSRFTOKEN','{{ request.COOKIES.csrftoken }}');
+    xhr.send(form);   //发送表单
+    // xhr.onreadystatechange = function () {
+    //     if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+    //         console.log(xhr.responseText)
+    //     }
+    // }
+}
+
+// function xhrUploadDir(dir_label_name) {
+//     let xhr = new XMLHttpRequest();
+//     let files = document.getElementById(dir_label_name).files;
+//     let fd = new FormData();
+//     let path_list = [];
+//     for (let i = 0; i < files.length; i++) {
+//         path_list.push(files[i].webkitRelativePath);
+//         fd.append(dir_label_name, files[i]);
+//     }
+//     fd.append('path', path_list);
+//
+//     // 这里绑定了进度条，前端也可以动态创建进度页面
+//     xhr.upload.addEventListener('progress',onProgress,false);
+//
+//     xhr.open('POST','/bpcloud/upload_dir/',true);
+//     xhr.setRequestHeader('X-CSRFTOKEN','{{ request.COOKIES.csrftoken }}');
+//     xhr.send(fd);
+// }
+
+// 统一操作
+function unifyOp(info_list, operation, op_info) {
+    let data = {};
+    data['info'] = op_info;
+    data['opera'] = operation;
+    data['info_list'] = JSON.stringify(info_list);
+    $.ajax({
+            url: "/bpcloud/dfile_opera/",
+            dataType: 'json',
+            type: 'GET',
+            data: data,
+            success: function (res) {
+                alert('success');
+                if(res['res'] === 'res200'){
+                    flushPage();
                 }
-            } else {
-                debugger;
-                error(data.messages[0].message);
+                else {
+                    // 返回失败信息
+                    alert(res['res']);
+                }
+            },
+            fail: function (res) {
+                console.log('失败');
+                fail()
             }
-
-        },
-        fail: function(data){
-            debugger;
-            error(data);
-        },
-        error: function(data){
-            debugger;
-            error(data);
-        }
     });
 }
-function POST_FILE(url, data) {
-    if (url === null){
-        alert("url 不能为空");
-        return;
-    }
-    if(data === null){
-        data = {};
-    }
-    window.open('/file/downloadFile?fid='+data.fid);
-}
-function UPLOAD_FILE(formData, success, error) {
 
+
+function multipleTran(url, data, success, fail) {
     $.ajax({
-        url: "file/uploadFile0",
-        type: "POST",
-        data: formData,
-        /**
-         *必须false才会自动加上正确的Content-Type
-         */
-        contentType: false,
-        /**
-         * 必须false才会避开jQuery对 formdata 的默认处理
-         * XMLHttpRequest会对 formdata 进行正确的处理
-         */
-        processData: false,
-        success: function (data) {
-            if (data.messages !== null && data.messages[0].code === '1000' ){
-                success(data.data.rows);
-            } else {
-                debugger;
-                error(data.messages[0].message);
+            url: url,
+            dataType: 'json',
+            type: 'GET',
+            data: data,
+            success: function (res) {
+                if(res['res'] === 'res200'){
+                    console.log(res['res']);
+                    success(data);      // 成功执行成功函数
+                }
+                else {
+                    // 失败打印出错信息
+                    alert(res['res']);
+                }
+            },
+            fail: function (res) {
+                console.log('失败');
+                fail()
             }
-        },
-        error: function () {
-            alert("上传失败！");
-            $("#imgWait").hide();
-        }
     });
 }
-let userID = "userID";
-let userName = "name";
-let userPhone = "phone";
-let fid = 0;
 
-function getUserID() {
-    return localStorage.getItem(userID);
-}
-function getUserName() {
-    return localStorage.getItem(userName);
-}
-function getUserPhone() {
-    return localStorage.getItem(userPhone);
-}
-function setFID(fid0){
-    fid = fid0;
-}
-function getFID(){
-    return fid;
-}
-function getDirInfo(superid, name, fid) {
-    let dic = {};
-    dic['uid'] = getUserID();
-    if (superid === null){
-        superid = getFID();
-    }
-    dic['superid'] = superid;
-    if (name !== null){
-        dic['name'] = name;
-    }
-    if (fid !== null){
-        dic['id'] = fid;
-    }
-    return dic;
-}
-
-function saveUser(user) {
-    localStorage.setItem(userName,user.name);
-    localStorage.setItem(userID,user.id);
-    localStorage.setItem(userPhone,user.phone);
+function pageChange(url, data, success, fail) {
+    $.ajax({
+            url: url,
+            dataType: 'json',
+            type: 'GET',
+            data: data,
+            success: function (res) {
+                if(res['res'] === 'error'){
+                    alert('error!');
+                }
+                else {
+                    success(res['res']);
+                }
+            },
+            fail: function (res) {
+                console.log('失败');
+                fail();
+            }
+    });
 }
